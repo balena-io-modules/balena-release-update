@@ -1,0 +1,51 @@
+{
+  "name": "@balena/release-update",
+  "version": "0.0.1",
+  "description": "Prepare and get information about the transition between two balenaCloud application releases",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/balena-io-modules/balena-release-update"
+  },
+  "author": "Balena Ltd.",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
+  "bin": {
+    "balena-release-update": "./bin/balena-release-update"
+  },
+  "files": [
+    "tsconfig.json",
+    "bin/",
+    "build/"
+  ],
+  "scripts": {
+    "clean": "rimraf ./build",
+    "build": "npm run clean && npm run prettify && tsc --project ./tsconfig.json",
+    "lint": "balena-lint --typescript lib bin && tsc --noEmit",
+    "prettify": "balena-lint -e ts -e js --typescript --fix lib bin",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@types/node": "^14.17.4",
+    "balena-sdk": "^15.41.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.4"
+  },
+  "devDependencies": {
+    "@balena/lint": "^6.1.1",
+    "husky": "^7.0.1",
+    "lint-staged": "^11.1.1",
+    "rimraf": "^3.0.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "pre-push": "npm run lint"
+    }
+  },
+  "lint-staged": {
+    "*.ts": [
+      "balena-lint --typescript --fix"
+    ]
+  }
+}
