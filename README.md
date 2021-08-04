@@ -18,15 +18,55 @@ appreciate your feedback.
 
 ## Overview
 
-Devices on [balenaCloud] run *releases*, which is a term used to describe a set of artifacts and their runtime configuration. When you build and deploy a new release, all devices that belong to the application begin a process to transition to the new release by downloading the new artifacts and applying the new runtime configuration. When that transition ends, the device is said to be on the new release. In other words, each release describes a target state and devices strive to reach it. You can think of releases a device has been on as discrete points on a timeline and the transition from one to the other as an edge that connects the two.
+Devices on [balenaCloud] run *releases*, which is a term used to describe a
+set of artifacts and their runtime configuration. When you build and deploy a
+new release, all devices that belong to the application begin a process to
+transition to the new release by downloading the new artifacts and applying
+the new runtime configuration. When that transition ends, the device is said
+to be on the new release. In other words, each release describes a target state
+and devices strive to reach it. You can think of releases a device has been on
+as discrete points on a timeline and the transition from one to the other as
+an edge that connects the two.
 
-Each transition may involve intermediate artifacts that, like releases, must be built before it can begin to take place. We tentatively call this transition and the artifacts a *release update*. A release update is *pending* when it hasn't been asked to begin building its artifacts, and *ready* when all of its artifacts have been built, at which point the transition can begin. While the release update is being built, it is said to be in the *preparing* state.
+Each transition may involve intermediate artifacts that, like releases, must
+be built before it can begin to take place. We tentatively call this transition
+and the artifacts a *release update*. A release update is *pending* when it
+hasn't been asked to begin building its artifacts, and *ready* when all of its
+artifacts have been built, at which point the transition can begin. While the
+release update is being built, it is said to be in the *preparing* state.
 
-Currently, the only type of such an intermediate artifact is *[image deltas]*. An image delta is the binary difference between two Docker images, called the *source* and *destination* image. Deltas are themselves ordinary images that can be applied on top of the source image to produce a third one that is bit-identical to the destination image. The computation of a delta is between the raw image data, thus changes to lower image layers do not cause unnecessary data to be included into the payload, resulting in significant network-bandwidth savings compared to pulling regular images in order to update.
+Currently, the only type of such an intermediate artifact is *[image deltas]*.
+An image delta is the binary difference between two Docker images, called the
+*source* and *destination* image. Deltas are themselves ordinary images that
+can be applied on top of the source image to produce a third one that is
+bit-identical to the destination image. The computation of a delta is between
+the raw image data, thus changes to lower image layers do not cause unnecessary
+data to be included into the payload, resulting in significant network-bandwidth
+savings compared to pulling regular images in order to update.
 
-Devices use deltas instead of regular image pulls to update to a new release, when configured for doing so. Devices that run balenaOS after v2.47.1 are configured to use deltas by default. When such a device begins its update process, it'll first ask for deltas between the images it has locally and the images specified by the new release for each respective service. Deltas, however, may take significant time to produce – it is primarily a function of the size of the images involved – therefore delaying the transition. Deltas are unique among any given image pair, thus it is enough for a delta to be generated once – the same set of deltas can then be downloaded by every device that updates between the same two releases.
+Devices use deltas instead of regular image pulls to update to a new release,
+when configured for doing so. Devices that run balenaOS after v2.47.1 are
+configured to use deltas by default. When such a device begins its update
+process, it'll first ask for deltas between the images it has locally and the
+images specified by the new release for each respective service. Deltas,
+however, may take significant time to produce – it is primarily a function of
+the size of the images involved – therefore delaying the transition. Deltas
+are unique among any given image pair, thus it is enough for a delta to be
+generated once – the same set of deltas can then be downloaded by every device
+that updates between the same two releases.
 
-`balena-release-update` is able to provide information about these transitions and a way to fully prepare a release update before your fleet updates to a new release, which in combination with [release pinning] can significantly reduce the time required for a device to transition from the old to the new release. Given any two releases of the same application, it computes a description of the transition and can trigger a build of all required artifacts, including image deltas, and it can optionally wait until the release update becomes ready or a configurable timeout is exceeded before returning. The returned information includes details about which artifacts will be removed, which will be downloaded and which will merely be updated, as well as information about deltas. It also provides a (pessimistic) estimate of the total payload size, which is useful for fleet owners that run devices in network-constrained environments.
+`balena-release-update` is able to provide information about these transitions
+and a way to fully prepare a release update before your fleet updates to a new
+release, which in combination with [release pinning] can significantly reduce
+the time required for a device to transition from the old to the new release.
+Given any two releases of the same application, it computes a description of
+the transition and can trigger a build of all required artifacts, including
+image deltas, and it can optionally wait until the release update becomes ready
+or a configurable timeout is exceeded before returning. The returned information
+includes details about which artifacts will be removed, which will be downloaded
+and which will merely be updated, as well as information about deltas. It also
+provides a (pessimistic) estimate of the total payload size, which is useful
+for fleet owners that run devices in network-constrained environments.
 
 [image deltas]: https://www.balena.io/docs/learn/deploy/delta/
 [release pinning]: https://www.balena.io/docs/learn/deploy/release-strategy/release-policy/#pin-application-to-a-release
