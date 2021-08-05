@@ -1,6 +1,6 @@
 {
   "name": "@balena/release-update",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Prepare and get information about the transition between two balenaCloud application releases",
   "license": "Apache-2.0",
   "repository": {
@@ -49,5 +49,8 @@
     "*.ts": [
       "balena-lint --typescript --fix"
     ]
+  },
+  "versionist": {
+    "publishedAt": "2021-08-05T08:47:55.754Z"
   }
 }
