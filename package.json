@@ -11,7 +11,7 @@
   "main": "./build/index.js",
   "types": "./build/index.d.ts",
   "bin": {
-    "balena-release-update": "./bin/balena-release-update"
+    "balena-release-update": "./bin/balena-release-update.js"
   },
   "files": [
     "tsconfig.json",
