@@ -85,16 +85,16 @@ export interface GetUpdateInfoOptions {
  *                for help on individual attributes.
  */
 export async function getUpdateInfo(
-	fromReleaseId: number,
-	toReleaseId: number,
+	fromRelease: number | string,
+	toRelease: number | string,
 	options?: GetUpdateInfoOptions,
 ): Promise<ReleaseUpdate> {
 	const client = options?.client || sdk.fromSharedOptions();
 	const [sourceRelease, targetRelease] = await Promise.all([
-		client.models.release.getWithImageDetails(fromReleaseId, {
+		client.models.release.getWithImageDetails(fromRelease, {
 			release: { $filter: { status: 'success' } },
 		}),
-		client.models.release.getWithImageDetails(toReleaseId, {
+		client.models.release.getWithImageDetails(toRelease, {
 			release: { $filter: { status: 'success' } },
 		}),
 	]);
@@ -120,7 +120,7 @@ export async function getUpdateInfo(
 				.map((s) => statusIndexByName[s.status])
 				.reduce(
 					(minStatus, serviceStatus) => Math.min(minStatus, serviceStatus),
-					0,
+					2,
 				)
 		];
 
@@ -179,8 +179,8 @@ export interface PrepareUpdateOptions extends GetUpdateInfoOptions {
 }
 
 export async function prepareUpdate(
-	fromReleaseId: number,
-	toReleaseId: number,
+	fromRelease: number | string,
+	toRelease: number | string,
 	options?: PrepareUpdateOptions,
 ): Promise<ReleaseUpdate> {
 	const client = options?.client || sdk.fromSharedOptions();
@@ -191,7 +191,7 @@ export async function prepareUpdate(
 	const shouldWait =
 		options.wait === true || (options.wait !== false && waitUntil != null);
 
-	const update = await getUpdateInfo(fromReleaseId, toReleaseId, options);
+	const update = await getUpdateInfo(fromRelease, toRelease, options);
 	if (update.overall_status === 'ready') {
 		return update;
 	}
@@ -220,7 +220,12 @@ export async function prepareUpdate(
 	}
 
 	debug('Waiting for update to become ready...');
-	return await waitForReadiness(client, fromReleaseId, toReleaseId, waitUntil);
+	return await waitForReadiness(
+		client,
+		update.originates_from__release.id,
+		update.produces__release.id,
+		waitUntil,
+	);
 }
 
 // - Internal stuff
