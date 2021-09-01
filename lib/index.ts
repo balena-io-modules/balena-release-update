@@ -119,7 +119,7 @@ export async function getUpdateInfo(
 			serviceUpdates
 				.map((s) => statusIndexByName[s.status])
 				.reduce(
-					(maxStatus, serviceStatus) => Math.max(maxStatus, serviceStatus),
+					(minStatus, serviceStatus) => Math.min(minStatus, serviceStatus),
 					0,
 				)
 		];
