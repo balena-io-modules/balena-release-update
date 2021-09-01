@@ -11,8 +11,8 @@ Usage: balena-release-update [options]
 
 Options:
 
-  --from-release ID   The source release ID (number; required).
-  --to-release ID     The target release ID (number; required).
+  --from-release   The source release ID or commit hash (required).
+  --to-release     The target release ID or commit hash (required).
 
   --prepare     Trigger any pending image deltas between service images.
   --wait        Wait until the update is ready. Implies --prepare.
@@ -62,6 +62,28 @@ Example:
   }
 `;
 
+function parseNumber(arg) {
+	const num = parseInt(arg, 10);
+	if (num == null || isNaN(num)) {
+		return null;
+	}
+	if (num.toString() !== arg) {
+		return null;
+	}
+	return num;
+}
+
+function parseRelease(arg) {
+	const rel = parseNumber(arg);
+	if (rel != null) {
+		return rel; // we've been given an ID
+	}
+	if (/[a-zA-Z0-9]{6,32}/.test(arg)) {
+		return arg; // we've been given a commit hash
+	}
+	return null;
+}
+
 function parseArgs() {
 	const argv = process.argv.slice(2);
 
@@ -80,47 +102,58 @@ function parseArgs() {
 		timeout: undefined,
 	};
 
-	let fromReleaseId;
-	let toReleaseId;
+	let fromRelease;
+	let toRelease;
 
 	while (argv.length > 0) {
 		const arg = argv.shift();
 		switch (arg) {
 			case '--timeout':
-				options.timeout = parseInt(argv.shift(), 10);
+				const timeout = argv.shift();
+				options.timeout = parseNumber(timeout);
+				if (options.timeout == null) {
+					throw new Error(`Invalid value for --timeout option: ${timeout}`);
+				}
+			// fallthrough
 			case '--wait':
 				options.wait = true;
+			// fallthrough
 			case '--prepare':
 				options.prepare = true;
 				break;
 			case '--from-release':
-				fromReleaseId = parseInt(argv.shift(), 10);
+				const rel1 = argv.shift();
+				fromRelease = parseRelease(rel1);
+				if (fromRelease == null) {
+					throw new Error(`Invalid value for --from-release option: ${rel1}`);
+				}
 				break;
 			case '--to-release':
-				toReleaseId = parseInt(argv.shift(), 10);
+				const rel2 = argv.shift();
+				toRelease = parseRelease(rel2);
+				if (toRelease == null) {
+					throw new Error(`Invalid value for --to-release option: ${rel2}`);
+				}
 				break;
 			default:
 				throw new Error(`invalid option: ${arg}`);
 		}
 	}
-	if (fromReleaseId == null || toReleaseId == null) {
+	if (fromRelease == null || toRelease == null) {
 		throw new Error('Must specify both a source and a target release');
-	}
-	if (isNaN(fromReleaseId) || isNaN(toReleaseId)) {
-		throw new Error('Either or both release IDs are invalid');
 	}
 
 	return {
-		fromReleaseId,
-		toReleaseId,
+		fromRelease,
+		toRelease,
 		options,
 	};
 }
 
 async function main() {
-	const { fromReleaseId, toReleaseId, options } = parseArgs();
+	const { fromRelease, toRelease, options } = parseArgs();
 	const cmd = options.prepare ? prepareUpdate : getUpdateInfo;
-	return await cmd(fromReleaseId, toReleaseId, options);
+	return await cmd(fromRelease, toRelease, options);
 }
 
 main()

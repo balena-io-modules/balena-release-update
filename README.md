@@ -115,8 +115,8 @@ Usage: balena-release-update [options]
 
 Options:
 
-  --from-release ID   The source release ID (number; required).
-  --to-release ID     The target release ID (number; required).
+  --from-release   The source release ID or commit hash (required).
+  --to-release     The target release ID or commit hash (required).
 
   --prepare     Trigger any pending image deltas between service images.
   --wait        Wait until the update is ready. Implies --prepare.
