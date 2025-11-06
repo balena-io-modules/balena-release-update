@@ -21,8 +21,8 @@
   "scripts": {
     "clean": "rimraf ./build",
     "build": "npm run clean && npm run prettify && tsc --project ./tsconfig.json",
-    "lint": "balena-lint --typescript lib bin && tsc --noEmit",
-    "prettify": "balena-lint -e ts -e js --typescript --fix lib bin",
+    "lint-fix": "balena-lint --fix bin/ lib",
+    "lint": "balena-lint bin/ lib && tsc --noEmit",
     "prepack": "npm run build",
     "test": "npm run lint && npm run build && catch-uncommitted --catch-no-git --skip-node-versionbot-changes"
   },
@@ -33,7 +33,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "@balena/lint": "^6.1.1",
+    "@balena/lint": "^9.3.8",
     "catch-uncommitted": "^2.0.0",
     "husky": "^7.0.1",
     "lint-staged": "^11.1.1",
