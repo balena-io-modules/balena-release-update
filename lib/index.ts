@@ -436,7 +436,7 @@ async function requestImageDelta(
 		// v2 respond with a redirect to S3
 		return res.statusCode === 200 || res.statusCode === 302;
 	} catch (err) {
-		if (err.statusCode === 504) {
+		if (err instanceof Error && 'statusCode' in err && err.statusCode === 504) {
 			// the delta is being computed
 			return false;
 		}
