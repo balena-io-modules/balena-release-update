@@ -261,23 +261,6 @@ async function pollForReadiness(
 	}
 }
 
-interface Delta {
-	id: number;
-	status: string;
-
-	// only access these if `status is 'success'`.
-	// they're otherwise undefined.
-	version: number;
-	is_stored_at__location: string;
-	size: number;
-
-	// these are only declared in order to satisfy the sdk types when querying.
-	// they're always undefined.
-	originates_from__image?: sdk.OptionalNavigationResource<sdk.Image>;
-	produces__image?: sdk.NavigationResource<sdk.Image>;
-	update_timestamp?: Date;
-}
-
 function toNumber(s: string | number): number {
 	return parseInt((s || 0).toString(), 10);
 }
@@ -348,8 +331,8 @@ async function resolveServiceUpdates(
 					is_produced_by__delta: delta && {
 						id: delta.id,
 						version: delta.version,
-						is_stored_at__location: delta.is_stored_at__location,
-						size: toNumber(delta.size),
+						is_stored_at__location: delta.is_stored_at__location!,
+						size: toNumber(delta.size ?? 0),
 					},
 				},
 			};
@@ -357,7 +340,7 @@ async function resolveServiceUpdates(
 	);
 }
 
-async function getImage(client: sdk.BalenaSDK, id: number): Promise<sdk.Image> {
+async function getImage(client: sdk.BalenaSDK, id: number) {
 	return client.models.image.get(id, {
 		$select: [
 			'id',
@@ -374,17 +357,16 @@ async function getImageDelta(
 	version: number,
 	src: number | undefined,
 	dest: number,
-): Promise<Delta | undefined> {
+) {
 	if (src == null) {
 		return undefined; // we do not generate deltas "from scratch"
 	}
 	// look for a successful or a running delta. at any given time, there
 	// can be at most one of each, and only one or the other
-	const [delta] = await client.pine.get<Delta>({
+	const [delta] = await client.pine.get({
 		resource: 'delta',
 		options: {
 			$top: 1, // see above why that works
-			$orderby: 'id desc',
 			$select: ['id', 'status', 'version', 'is_stored_at__location', 'size'],
 			$filter: {
 				version,
@@ -407,6 +389,7 @@ async function getImageDelta(
 					},
 				],
 			},
+			$orderby: { id: 'desc' },
 		},
 	});
 	return delta;
