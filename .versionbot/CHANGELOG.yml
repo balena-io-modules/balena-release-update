@@ -1,0 +1,94 @@
+- commits:
+    - subject: Update balena-sdk to v22.2.0
+      hash: 7617a162a580663c1443cb1ed9a0ae179098bd12
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+    - subject: Drop support for nodejs < v20.12.0
+      hash: 6e0041fae7189e83616bd12a572ed949e1ed9b28
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+    - subject: Run npm audit fix
+      hash: b31966b73cdaf5d4364efc5365c9f55e33333417
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+    - subject: Update dependencies
+      hash: 97614725be407bfdb063259f46a25e3f837467eb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+    - subject: Update balena/lint to v9.3.8
+      hash: 918ea5125d4c740e5e814107b0cad3bc38d18951
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+    - subject: Update TypeScript to 5.9.3
+      hash: b45c604de7c5c37a63546f47dd66291bc5b0c1a8
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+    - subject: Replace balenaCI with flowzone
+      hash: 5b57f36970e93ef9a7cada987320ba91f4705a8b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+  version: 0.1.0
+  title: ""
+  date: 2025-11-11T16:52:58.034Z
+- version: 0.0.5
+  date: 2021-09-01T10:30:57Z
+  commits:
+    - hash: 53b44969febd58e51fa4b6fc86cb02967d7b69fd
+      author: Akis Kesoglou
+      footers:
+        change-type: patch
+      subject: Accept release commit hashes as well as IDs
+      body: ""
+- version: 0.0.4
+  date: 2021-09-01T09:49:31Z
+  commits:
+    - hash: 5f6c92e350b9af3de5262338945e7c2f773bcbfe
+      author: Akis Kesoglou
+      footers:
+        change-type: patch
+      subject: Fix determining overall status
+      body: ""
+- version: 0.0.3
+  date: 2021-08-06T11:34:34Z
+  commits:
+    - hash: 9b4d1258b0d8addd31edba224433bd826130a6a3
+      author: Somo S
+      footers:
+        change-type: patch
+        signed-off-by: Somo S <somo@balena.io>
+      subject: fix bin config
+      body: fixes https://github.com/balena-io-modules/balena-release-update/issues/2
+- version: 0.0.2
+  date: 2021-08-05T09:06:06Z
+  commits:
+    - hash: 81ffbb334a6a6009d3d8d370776eabfa17ff2227
+      author: Akis Kesoglou
+      footers:
+        change-type: patch
+      subject: Wrap text in README
+      body: ""
+    - hash: 5dad4c1f0fbaf0a3117e949c4cb7a2afe9e2eebd
+      author: Akis Kesoglou
+      subject: Fix CI
+      body: ""

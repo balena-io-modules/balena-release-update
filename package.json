@@ -1,6 +1,6 @@
 {
   "name": "@balena/release-update",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "Prepare and get information about the transition between two balenaCloud application releases",
   "license": "Apache-2.0",
   "repository": {
@@ -44,6 +44,6 @@
     "node": "^20.12.0 || >= 22.0.0"
   },
   "versionist": {
-    "publishedAt": "2021-09-01T10:27:57.080Z"
+    "publishedAt": "2025-11-11T16:52:58.089Z"
   }
 }
