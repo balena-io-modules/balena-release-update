@@ -89,7 +89,7 @@ export async function getUpdateInfo(
 	toRelease: number | string,
 	options?: GetUpdateInfoOptions,
 ): Promise<ReleaseUpdate> {
-	const client = options?.client || sdk.fromSharedOptions();
+	const client = options?.client ?? sdk.fromSharedOptions();
 	const [sourceRelease, targetRelease] = await Promise.all([
 		client.models.release.getWithImageDetails(fromRelease, {
 			release: { $filter: { status: 'success' } },
@@ -133,7 +133,7 @@ export async function getUpdateInfo(
 							? total + su.produces__image.is_produced_by__delta.size
 							: total + su.produces__image.image_size,
 					0,
-			  );
+				);
 
 	return {
 		originates_from__release: {
@@ -183,7 +183,7 @@ export async function prepareUpdate(
 	toRelease: number | string,
 	options?: PrepareUpdateOptions,
 ): Promise<ReleaseUpdate> {
-	const client = options?.client || sdk.fromSharedOptions();
+	const client = options?.client ?? sdk.fromSharedOptions();
 	options = { ...options, client };
 
 	const waitUntil =
@@ -236,11 +236,9 @@ async function waitForReadiness(
 	toReleaseId: number,
 	untilDate?: number,
 ): Promise<ReleaseUpdate> {
-	if (untilDate == null) {
-		// if no timeout is set, set one way out in the future (24 hours)
-		// so we don't have to do if/else.
-		untilDate = Date.now() + 1000 * 60 * 60 * 24;
-	}
+	// if no timeout is set, set one way out in the future (24 hours)
+	// so we don't have to do if/else.
+	untilDate ??= Date.now() + 1000 * 60 * 60 * 24;
 	return await withTimeout(
 		untilDate - Date.now(),
 		pollForReadiness(client, fromReleaseId, toReleaseId),
@@ -252,7 +250,7 @@ async function pollForReadiness(
 	fromReleaseId: number,
 	toReleaseId: number,
 ): Promise<ReleaseUpdate> {
-	do {
+	while (true) {
 		await delay(1000 * 20); // wait 20 seconds between polls
 
 		const update = await getUpdateInfo(fromReleaseId, toReleaseId, { client });
@@ -260,24 +258,7 @@ async function pollForReadiness(
 			return update;
 		}
 		debug('The update is not ready yet; will repoll in 20 seconds...');
-	} while (true);
-}
-
-interface Delta {
-	id: number;
-	status: string;
-
-	// only access these if `status is 'success'`.
-	// they're otherwise undefined.
-	version: number;
-	is_stored_at__location: string;
-	size: number;
-
-	// these are only declared in order to satisfy the sdk types when querying.
-	// they're always undefined.
-	originates_from__image?: sdk.OptionalNavigationResource<sdk.Image>;
-	produces__image?: sdk.NavigationResource<sdk.Image>;
-	update_timestamp?: Date;
+	}
 }
 
 function toNumber(s: string | number): number {
@@ -302,11 +283,9 @@ async function resolveServiceUpdates(
 			const targetImageId = targetImagesByServiceName[serviceName];
 
 			const [sourceImage, targetImage, deltaImage] = await Promise.all([
-				sourceImageId == null
-					? undefined
-					: await getImage(client, sourceImageId),
-				await getImage(client, targetImageId),
-				await getImageDelta(client, 3, sourceImageId, targetImageId),
+				sourceImageId == null ? undefined : getImage(client, sourceImageId),
+				getImage(client, targetImageId),
+				getImageDelta(client, 3, sourceImageId, targetImageId),
 			]);
 
 			let delta = deltaImage;
@@ -339,7 +318,7 @@ async function resolveServiceUpdates(
 						sourceImage.is_stored_at__image_location,
 					// successfully built images are guaranteed to have a content hash and size
 					content_hash: sourceImage.content_hash!,
-					image_size: toNumber(sourceImage.image_size || 0),
+					image_size: toNumber(sourceImage.image_size ?? 0),
 				},
 
 				produces__image: {
@@ -347,13 +326,13 @@ async function resolveServiceUpdates(
 					is_stored_at__image_location:
 						targetImage.is_stored_at__image_location,
 					content_hash: targetImage.content_hash!,
-					image_size: toNumber(targetImage.image_size || 0),
+					image_size: toNumber(targetImage.image_size ?? 0),
 
 					is_produced_by__delta: delta && {
 						id: delta.id,
 						version: delta.version,
-						is_stored_at__location: delta.is_stored_at__location,
-						size: toNumber(delta.size),
+						is_stored_at__location: delta.is_stored_at__location!,
+						size: toNumber(delta.size ?? 0),
 					},
 				},
 			};
@@ -361,7 +340,7 @@ async function resolveServiceUpdates(
 	);
 }
 
-async function getImage(client: sdk.BalenaSDK, id: number): Promise<sdk.Image> {
+async function getImage(client: sdk.BalenaSDK, id: number) {
 	return client.models.image.get(id, {
 		$select: [
 			'id',
@@ -378,17 +357,16 @@ async function getImageDelta(
 	version: number,
 	src: number | undefined,
 	dest: number,
-): Promise<Delta | undefined> {
+) {
 	if (src == null) {
 		return undefined; // we do not generate deltas "from scratch"
 	}
 	// look for a successful or a running delta. at any given time, there
 	// can be at most one of each, and only one or the other
-	const [delta] = await client.pine.get<Delta>({
+	const [delta] = await client.pine.get({
 		resource: 'delta',
 		options: {
 			$top: 1, // see above why that works
-			$orderby: 'id desc',
 			$select: ['id', 'status', 'version', 'is_stored_at__location', 'size'],
 			$filter: {
 				version,
@@ -411,6 +389,7 @@ async function getImageDelta(
 					},
 				],
 			},
+			$orderby: { id: 'desc' },
 		},
 	});
 	return delta;
@@ -436,7 +415,7 @@ async function requestImageDelta(
 		// v2 respond with a redirect to S3
 		return res.statusCode === 200 || res.statusCode === 302;
 	} catch (err) {
-		if (err.statusCode === 504) {
+		if (err instanceof Error && 'statusCode' in err && err.statusCode === 504) {
 			// the delta is being computed
 			return false;
 		}
@@ -457,8 +436,10 @@ async function withTimeout<T>(
 	perform: Promise<T>,
 ): Promise<T> {
 	return new Promise((resolve, reject) => {
-		const handle = setTimeout(() => reject(new Error('timeout')), timeoutMs);
-		perform.then((res) => {
+		const handle = setTimeout(() => {
+			reject(new Error('timeout'));
+		}, timeoutMs);
+		void perform.then((res) => {
 			clearTimeout(handle);
 			resolve(res);
 		});
